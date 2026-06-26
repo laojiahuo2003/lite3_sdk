@@ -1,16 +1,25 @@
-# Lite3机器人SDK
+# Lite3 机器人 SDK
 
-Lite3机器人运动控制SDK，用于通过UDP协议与绝影Lite3运动主机通信。
+绝影 Lite3 四足机器人运动控制 Python SDK，通过 UDP 协议与运动主机通信，支持完整的运动控制、状态监控及摄像头视频流接入。
+
+[![Python](https://img.shields.io/badge/python-≥3.10-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 ## 功能特性
 
-- ✅ 完整的UDP通信封装
-- ✅ 所有控制指令支持（30+种指令）
-- ✅ 机器人状态数据解析
-- ✅ 关节角度和角速度数据解析
-- ✅ 自动心跳机制
-- ✅ 异步数据接收和回调
-- ✅ 简洁易用的API
+- **完整指令覆盖** — 40+ 种控制指令：运动控制、状态切换、步态/越障切换、AI 模式、动作、语音/扬声器
+- **UDP 通信封装** — 简单指令 / 复杂指令自动封包，响应对端解析
+- **实时状态解析** — 机器人状态(IMU/位姿/速度/电池/超声波)、12 关节角度、12 关节角速度
+- **自动心跳** — 后台线程维持心跳，频率可配（≥2 Hz）
+- **异步回调** — 状态/关节数据到达时自动回调，无需轮询
+- **摄像头接入** — RTSP 视频流客户端，支持阻塞/非阻塞读取、帧回调
+- **上下文管理器** — `with` 语句自动 connect/disconnect
+- **键盘控制示例** — 开箱即用的键盘遥控脚本
+
+## 系统要求
+
+- Python **≥ 3.10**
+- 依赖：[numpy](https://pypi.org/project/numpy/) ≥ 1.24、[opencv-python-headless](https://pypi.org/project/opencv-python-headless/) ≥ 4.5.0（仅摄像头功能需要）
 
 ## 安装
 
@@ -21,201 +30,276 @@ pip install -e .
 
 ## 快速开始
 
-### 基础使用
+### 连接与基础控制
 
 ```python
 from lite3_sdk import Lite3Client
 
-# 创建客户端
 client = Lite3Client(host="192.168.1.120", port=43893)
 
-# 连接（verify=True会验证目标主机是否可达）
-# 如果机器狗未开机，连接会失败
+# verify=True 会发送心跳包验证目标是否可达（推荐）
 if not client.connect(verify=True):
     print("连接失败，请检查机器狗是否开机")
     return
 
-# 启动心跳（必须）
-client.start_heartbeat(rate=5.0)
+client.start_heartbeat(rate=5.0)   # 启动心跳（必须）
 
-# 控制机器人
-client.stand_toggle()  # 起立/趴下
-client.set_moving_mode()  # 移动模式
-client.set_pitch(10000)  # 向前移动
+client.stand_toggle()              # 起立 / 趴下
+client.set_moving_mode()           # 移动模式
+client.set_pitch(10000)            # 向前移动
 
-# 断开连接
 client.disconnect()
 ```
 
-### 重要说明：UDP连接验证
-
-**UDP是无连接协议**，默认情况下即使目标主机不可达，`connect()`也会返回成功。
-
-本SDK提供两种连接方式：
-
-1. **验证连接（推荐）**：`client.connect(verify=True)`
-   - 发送心跳包并等待响应
-   - 如果机器狗未开机或网络不通，会返回失败
-   - 需要机器狗已配置数据上报（参考文档第4节）
-
-2. **不验证连接**：`client.connect(verify=False)`
-   - 只创建socket，不验证目标可达性
-   - 适用于不确定机器狗状态的情况
-   - 发送指令可能失败，但不会立即报错
-
-### 使用上下文管理器
+### 上下文管理器（推荐）
 
 ```python
-from lite3_sdk import Lite3Client
-
 with Lite3Client(host="192.168.1.120") as client:
     client.start_heartbeat()
-    
-    # 控制机器人
     client.stand_toggle()
     # ... 其他操作
+    # 退出 with 块自动断开连接
 ```
 
-### 监控机器人状态
+### 状态监控
 
 ```python
-def state_callback(state):
-    print(f"电池: {state.battery_percentage:.1f}%")
-    print(f"位置: ({state.pos_x:.2f}, {state.pos_y:.2f})")
+def on_state(state):
+    print(f"电池: {state.battery_percentage:.1f}%  "
+          f"位置: ({state.pos_x:.2f}, {state.pos_y:.2f})")
 
 with Lite3Client() as client:
     client.start_heartbeat()
-    client.set_robot_state_callback(state_callback)
-    
-    # 等待接收数据
+    client.set_robot_state_callback(on_state)
     time.sleep(10)
 ```
 
-## 主要API
-
-### 摄像头
+### 摄像头视频流
 
 ```python
 from lite3_sdk import CameraClient
 
-# 创建摄像头客户端（默认使用192.168.2.1）
 camera = CameraClient(host="192.168.2.1")
 
-# 连接摄像头
 if camera.connect():
-    # 读取一帧
-    frame = camera.read_frame()
-
-    # 或使用回调函数
-    def process_frame(frame):
-        cv2.imshow('Camera', frame)
-        cv2.waitKey(1)
-
-    camera.set_frame_callback(process_frame)
-    camera.start_receiving()
-
-    # 运行一段时间
-    time.sleep(10)
-
+    while True:
+        frame = camera.read_frame()
+        if frame is not None:
+            cv2.imshow("Camera", frame)
+            if cv2.waitKey(1) & 0xFF in (ord('q'), 27):
+                break
     camera.disconnect()
 ```
 
-摄像头客户端功能：
-- `connect()` - 连接RTSP视频流
-- `read_frame()` - 读取一帧图像（阻塞）
-- `get_latest_frame()` - 获取最新帧（非阻塞）
-- `set_frame_callback()` - 设置帧回调函数
-- `start_receiving()` - 启动异步接收
-- `get_frame_info()` - 获取视频尺寸和帧率
+## 指令速查
 
 ### 状态转换
 
-- `stand_toggle()` - 起立/趴下切换
-- `soft_estop()` - 软急停
-- `zeroing()` - 回零
-- `enter_ai()` - 进入AI模式
-- `exit_ai()` - 退出AI模式
+| 方法 | 说明 |
+|------|------|
+| `stand_toggle()` | 起立 / 趴下切换 |
+| `soft_estop()` | 软急停 |
+| `zeroing()` | 回零 |
+| `enter_ai()` | 进入 AI 模式 |
+| `exit_ai()` | 退出 AI 模式 |
 
-### 运动模式
+### 模式切换
 
-- `set_in_place_mode()` - 原地模式
-- `set_moving_mode()` - 移动模式
+| 方法 | 说明 |
+|------|------|
+| `set_in_place_mode()` | 原地模式 |
+| `set_moving_mode()` | 移动模式 |
+| `set_autonomous_mode()` | 自主模式（速度指令生效） |
+| `set_manual_mode()` | 手动模式（轴指令生效） |
 
-### 控制模式
+### 轴指令（手柄 / 移动模式）
 
-- `set_autonomous_mode()` - 自主模式
-- `set_manual_mode()` - 手动模式
+| 方法 | 范围 | 说明 |
+|------|------|------|
+| `set_roll(value)` | [-32767, 32767] | 横滚角 / 左右平移 |
+| `set_pitch(value)` | [-32767, 32767] | 俯仰角 / 前后平移 |
+| `set_height(value)` | [-20000, 20000] | 身体高度 |
+| `set_yaw(value)` | [-32767, 32767] | 偏航角 / 左右转弯 |
 
-### 轴指令（手柄控制）
+### 速度指令（仅自主模式有效）
 
-- `set_roll(value)` - 横滚角/左右平移
-- `set_pitch(value)` - 俯仰角/前后平移
-- `set_height(value)` - 身体高度
-- `set_yaw(value)` - 偏航角/左右转弯
-
-### 速度指令（自主模式）
-
-- `set_x_velocity(velocity)` - 前后平移速度
-- `set_y_velocity(velocity)` - 左右平移速度
-- `set_yaw_velocity(velocity)` - 旋转角速度
+| 方法 | 范围 | 单位 | 说明 |
+|------|------|------|------|
+| `set_x_velocity(v)` | [-1.0, 1.0] | m/s | 前后平移 |
+| `set_y_velocity(v)` | [-0.5, 0.5] | m/s | 左右平移 |
+| `set_yaw_velocity(v)` | [-1.5, 1.5] | rad/s | 旋转速度 |
 
 ### 步态切换
 
-- `set_low_speed_gait()` - 低速步态
-- `set_medium_speed_gait()` - 中速步态
-- `set_high_speed_gait()` - 高速步态
-- `set_grip_obstacle_gait()` - 抓地越障步态
-- `set_general_obstacle_gait()` - 通用越障步态
+| 方法 | 说明 |
+|------|------|
+| `set_low_speed_gait()` | 平地低速步态 |
+| `set_medium_speed_gait()` | 平地中速步态 |
+| `set_high_speed_gait()` | 平地高速步态 |
+| `toggle_crawl_gait()` | 正常 / 匍匐步态切换 |
+| `set_grip_obstacle_gait()` | 抓地越障步态 |
+| `set_general_obstacle_gait()` | 通用越障步态 |
+| `set_high_step_obstacle_gait()` | 高踏步越障步态 |
 
 ### 动作指令
 
-- `twist_body()` - 扭身体
-- `roll_over()` - 翻身
-- `space_walk()` - 太空步
-- `backflip()` - 后空翻
-- `greeting()` - 打招呼
-- `jump_forward()` - 向前跳
+| 方法 | 说明 |
+|------|------|
+| `twist_body()` | 扭身体 |
+| `roll_over()` | 翻身 |
+| `space_walk()` | 太空步 |
+| `backflip()` | 后空翻 |
+| `greeting()` | 打招呼 |
+| `jump_forward()` | 向前跳 |
+| `twist_jump()` | 扭身跳 |
+| `stop_action()` | 停止动作 |
 
-### AI相关
+### AI 相关
 
-- `set_ai_basic_gait()` - AI基础步态
-- `set_ai_jump_gait()` - AI跳跃步态
-- `set_ai_stand_gait()` - AI站立步态
-- `perform_ai_action(value)` - AI动作
+| 方法 | 说明 |
+|------|------|
+| `set_ai_basic_gait()` | AI 基础步态 |
+| `set_ai_jump_gait()` | AI 跳跃步态 |
+| `set_ai_stand_gait()` | AI 站立步态 |
+| `set_ai_high_speed_gait()` | AI 极速步态 |
+| `perform_ai_action(value)` | 执行 AI 动作 |
+| `set_continuous_motion(enable)` | AI 持续运动开关 |
+| `set_ai_settings(value)` | AI 选项 |
+
+### 其他
+
+| 方法 | 说明 |
+|------|------|
+| `send_voice_command(value)` | 语音指令 |
+| `control_speaker(value)` | 扬声器控制 |
+| `stop_movement()` | 停止所有轴运动（发送全部轴值为 0） |
+| `save_data()` | 保存数据 |
+
+## 摄像头客户端
+
+[CameraClient](lite3_sdk/camera_client.py) 通过 RTSP 协议连接 Lite3 运动主机上的摄像头。
+
+| 方法 | 说明 |
+|------|------|
+| `connect(timeout)` | 连接 RTSP 视频流，默认超时 10s |
+| `read_frame()` | 读取一帧（阻塞），返回 `np.ndarray` 或 `None` |
+| `get_latest_frame()` | 获取最新帧（非阻塞），线程安全 |
+| `set_frame_callback(fn)` | 设置帧回调，签名 `fn(frame: np.ndarray)` |
+| `start_receiving()` | 启动异步接收线程 |
+| `stop_receiving()` | 停止异步接收 |
+| `get_frame_info()` | 获取 `(宽, 高, 帧率)` 或 `None` |
+| `disconnect()` | 断开连接 |
 
 ## 数据模型
 
-### RobotState
+### [RobotState](lite3_sdk/models/robot_state.py)
 
-机器人状态信息，包含：
-- 基本运动状态
-- 步态状态
-- AI步态状态
-- IMU数据（角度、角速度、加速度）
-- 世界坐标系位置和速度
-- 身体坐标系速度
-- 电池电量
-- 超声波距离
+通过 `client.robot_state` 获取最新状态，或注册回调 `client.set_robot_state_callback(fn)`。
 
-### JointAngles
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `robot_basic_state` | `int` | 基本运动状态（见 `RobotBasicState` 枚举） |
+| `robot_gait_state` | `int` | 当前步态（见 `RobotGaitState` 枚举） |
+| `robot_policy_state` | `int` | AI 步态（见 `RobotPolicyState` 枚举） |
+| `robot_motion_state` | `int` | 动作状态（见 `RobotMotionState` 枚举） |
+| `roll` / `pitch` / `yaw` | `float` | IMU 姿态角 (°) |
+| `roll_vel` / `pitch_vel` / `yaw_vel` | `float` | IMU 角速度 (rad/s) |
+| `x_acc` / `y_acc` / `z_acc` | `float` | IMU 加速度 (m/s²) |
+| `pos_x` / `pos_y` / `pos_yaw` | `float` | 世界坐标位置 (m) 和偏航角 (rad) |
+| `vel_x_world` / `vel_y_world` / `vel_yaw_world` | `float` | 世界坐标系速度 |
+| `vel_x_body` / `vel_y_body` / `vel_yaw_body` | `float` | 身体坐标系速度 |
+| `battery_level` | `float` | 电池电量小数（0~1） |
+| `ultrasound_forward` / `ultrasound_backward` | `float` | 超声波障碍物距离 (m) |
+| `is_robot_need_move` | `bool` | 受外力影响的平衡状态 |
+| `is_voice_ctrl_enable` | `bool` | 语音控制是否开启 |
 
-12个关节的角度信息（单位：rad）
+计算属性：
 
-### JointVelocities
+| 属性 | 说明 |
+|------|------|
+| `battery_percentage` | `battery_level * 100` |
+| `is_standing` | 是否处于站立状态（FORCE_CONTROL 或 AI_STATE） |
+| `is_ai_mode` | 是否处于 AI 模式 |
+| `basic_state_name` | 基本状态名（如 `"FORCE_CONTROL"`） |
+| `gait_state_name` | 步态名 |
+| `policy_state_name` | AI 步态名 |
+| `motion_state_name` | 动作状态名 |
 
-12个关节的角速度信息（单位：rad/s）
+### [JointAngles](lite3_sdk/models/joints.py) / [JointVelocities](lite3_sdk/models/joints.py)
 
-## 注意事项
+12 个关节的角度 (rad) 和角速度 (rad/s)，通过 `client.joint_angles` / `client.joint_velocities` 获取。
 
-1. **心跳必须启动**：频率应不低于2Hz
-2. **轴指令频率**：应不低于20Hz，超时250ms自动停止
-3. **自主模式**：速度指令仅在自主模式下有效
-4. **AI状态限制**：某些指令在AI状态下无效
-5. **网络配置**：需要正确配置运动主机IP地址
+| 属性 | 说明 |
+|------|------|
+| `left_front_abduction` ~ `right_back_knee` | 各关节逐一命名的访问器 |
+| `joint_angles` / `joint_velocities` | `List[float]`，12 个值按关节编号排列 |
+
+### 回调注册
+
+```python
+client.set_robot_state_callback(callback)       # callback(state: RobotState)
+client.set_joint_angles_callback(callback)      # callback(angles: JointAngles)
+client.set_joint_velocities_callback(callback)  # callback(velocities: JointVelocities)
+client.set_speaker_state_callback(callback)     # callback(state: int)  # 0=关闭, 1=开启
+```
+
+## UDP 连接验证说明
+
+UDP 是无连接协议，默认 `connect()` 只创建 socket，不验证目标是否可达。本 SDK 提供两种方式：
+
+| 方式 | 行为 |
+|------|------|
+| `connect(verify=True)` | 发送心跳包并等待响应，目标不可达时返回失败 |
+| `connect(verify=False)` | 只创建 socket，不验证可达性 |
+
+> **建议**：开发调试时使用 `verify=True` 尽早发现网络问题；不确定机器狗状态时可先用 `verify=False`。
 
 ## 示例代码
 
-查看 `examples/basic_usage.py` 获取更多使用示例。
+| 示例 | 文件 | 说明 |
+|------|------|------|
+| 基础用法 | [examples/basic_usage.py](examples/basic_usage.py) | 连接、心跳、模式切换、AI 模式、自主模式、动作、状态监控 |
+| 起立趴下 | [examples/stand_sit_demo.py](examples/stand_sit_demo.py) | 起立/趴下切换 + 状态等待 |
+| 键盘遥控 | [examples/keyboard_control.py](examples/keyboard_control.py) | 全功能键盘控制，支持所有指令 |
+| 摄像头 | [examples/camera_demo.py](examples/camera_demo.py) | RTSP 视频流实时显示 |
+| 连接测试 | [test_connection.py](test_connection.py) | ping + verify 连接诊断 |
+| SDK 验证 | [verify_sdk.py](verify_sdk.py) | 离线功能验证，无需机器人 |
+
+## 注意事项
+
+| # | 说明 |
+|---|------|
+| 1 | **心跳必须启动**，频率不低于 2 Hz，否则运动会自动停止 |
+| 2 | **轴指令频率** ≥ 20 Hz，超时 250ms 后运动自动停止（SDK 内部不自动重发，高频控制请在应用层循环发送） |
+| 3 | **速度指令**（`set_x_velocity` / `set_y_velocity` / `set_yaw_velocity`）仅在自主模式下有效 |
+| 4 | AI 状态下，部分运动控制指令可能被忽略 |
+| 5 | 运动主机默认 IP 为 `192.168.1.120`，需正确配置网络（直连或同网段） |
+| 6 | 摄像头 IP 通常与运动主机 IP 不同（默认 `192.168.2.1`），RTSP 端口为 `8554` |
+
+## 项目结构
+
+```
+lite3_sdk/
+├── lite3_sdk/
+│   ├── __init__.py          # 公开 API 导出
+│   ├── client.py            # Lite3Client 运动控制客户端
+│   ├── camera_client.py     # CameraClient RTSP 视频流客户端
+│   ├── commands/            # 指令定义
+│   │   ├── base.py          # SimpleCommand / ComplexCommand 基类
+│   │   ├── command_codes.py # CommandCode 枚举 (30+ 指令码)
+│   │   ├── gait_action.py   # 步态 / 动作 / AI / 语音指令
+│   │   ├── motion.py        # 运动控制指令
+│   │   └── state.py         # 状态转换指令
+│   ├── models/
+│   │   ├── robot_state.py   # RobotState + 状态枚举
+│   │   └── joints.py        # JointAngles / JointVelocities
+│   └── network/
+│       ├── udp_client.py    # UDP 底层通信
+│       └── message_parser.py # 响应消息解析
+├── examples/                # 使用示例
+├── tests/                   # 单元测试
+└── pyproject.toml
+```
 
 ## 许可证
 
