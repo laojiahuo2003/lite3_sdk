@@ -1,6 +1,7 @@
 """Lite3机器人SDK"""
 
 from .client import Lite3Client
+from .camera_client import CameraClient
 from .models import (
     RobotState,
     RobotBasicState,
@@ -69,6 +70,7 @@ __version__ = "1.0.0"
 __all__ = [
     # 主客户端
     'Lite3Client',
+    'CameraClient',
 
     # 数据模型
     'RobotState',

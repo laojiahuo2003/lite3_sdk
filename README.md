@@ -93,6 +93,41 @@ with Lite3Client() as client:
 
 ## 主要API
 
+### 摄像头
+
+```python
+from lite3_sdk import CameraClient
+
+# 创建摄像头客户端（默认使用192.168.2.1）
+camera = CameraClient(host="192.168.2.1")
+
+# 连接摄像头
+if camera.connect():
+    # 读取一帧
+    frame = camera.read_frame()
+
+    # 或使用回调函数
+    def process_frame(frame):
+        cv2.imshow('Camera', frame)
+        cv2.waitKey(1)
+
+    camera.set_frame_callback(process_frame)
+    camera.start_receiving()
+
+    # 运行一段时间
+    time.sleep(10)
+
+    camera.disconnect()
+```
+
+摄像头客户端功能：
+- `connect()` - 连接RTSP视频流
+- `read_frame()` - 读取一帧图像（阻塞）
+- `get_latest_frame()` - 获取最新帧（非阻塞）
+- `set_frame_callback()` - 设置帧回调函数
+- `start_receiving()` - 启动异步接收
+- `get_frame_info()` - 获取视频尺寸和帧率
+
 ### 状态转换
 
 - `stand_toggle()` - 起立/趴下切换
