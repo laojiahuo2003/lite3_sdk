@@ -25,26 +25,19 @@ if platform.system() == 'Windows':
         """Windows平台：获取单个字符输入"""
         if msvcrt.kbhit():
             ch = msvcrt.getch()
-            if ch == '\xe0':  # Windows特殊键前缀
+            # Python 3 中 msvcrt.getch() 返回 bytes，必须用 bytes 比较
+            if ch == b'\xe0':  # Windows特殊键前缀（箭头键/F键）
                 ch2 = msvcrt.getch()
-                if ch2 == 'H':
+                if ch2 == b'H':
                     return 'ARROW_A'  # 上
-                elif ch2 == 'P':
+                elif ch2 == b'P':
                     return 'ARROW_B'  # 下
-                elif ch2 == 'K':
+                elif ch2 == b'K':
                     return 'ARROW_D'  # 左
-                elif ch2 == 'M':
+                elif ch2 == b'M':
                     return 'ARROW_C'  # 右
-                elif ch2 == ';':
-                    return 'F1'
-                elif ch2 == '<':
-                    return 'F2'
-                elif ch2 == '=':
-                    return 'F3'
-                elif ch2 == '>':
-                    return 'F4'
                 return ch2
-            if ch == '\x1b':
+            if ch == b'\x1b':  # ESC
                 return '\x1b'
             try:
                 return ch.decode('utf-8')
@@ -96,16 +89,15 @@ else:
 class KeyboardController:
     """键盘控制器（虚拟摇杆模式）"""
 
-    # ---- 移动控制键位（WASD + QR，FPS 游戏标准布局） ----
-    # 注意：e 保留为软急停（安全第一），太空步移至 p，翻身移至 f
-    KEY_FORWARD = 'w'       # W — 前进（原 太空步 移至 p）
+    # ---- 移动控制键位（WASD + QE，FPS 游戏标准布局） ----
+    KEY_FORWARD = 'w'       # W — 前进
     KEY_BACKWARD = 's'      # S — 后退
     KEY_TURN_LEFT = 'a'     # A — 左转
     KEY_TURN_RIGHT = 'd'    # D — 右转
     KEY_STRAFE_LEFT = 'q'   # Q — 左平移
-    KEY_STRAFE_RIGHT = 'r'  # R — 右平移（原 翻身 移至 f）
+    KEY_STRAFE_RIGHT = 'e'  # E — 右平移
 
-    MOVEMENT_KEYS = ['w', 's', 'a', 'd', 'q', 'r']
+    MOVEMENT_KEYS = ['w', 's', 'a', 'd', 'q', 'e']
 
     # ---- 参数 ----
     AXIS_MAX = 32767
@@ -160,7 +152,7 @@ class KeyboardController:
             # 虚拟键码映射
             self._VK_MAP = {
                 'w': 0x57, 's': 0x53, 'a': 0x41, 'd': 0x44,
-                'q': 0x51, 'r': 0x52,
+                'q': 0x51, 'e': 0x45,
             }
 
     def _is_key_held(self, key_char: str) -> bool:
@@ -251,10 +243,10 @@ class KeyboardController:
         if self._is_key_held('d'):
             ty += self.MAX_SPEED
 
-        # Q/R — 左平移/右平移
+        # Q/E — 左平移/右平移
         if self._is_key_held('q'):
             tr -= self.MAX_SPEED
-        if self._is_key_held('r'):
+        if self._is_key_held('e'):
             tr += self.MAX_SPEED
 
         return tp, tr, ty
@@ -335,7 +327,7 @@ class KeyboardController:
         print("\n【移动控制 — 按住移动，松手自动停止】")
         print("  W / S    前进 / 后退")
         print("  A / D    左转 / 右转")
-        print("  Q / R    左平移 / 右平移")
+        print("  Q / E    左平移 / 右平移")
         print("  支持组合键（如 W+D = 前进+右转）")
         print("  v        显示当前轴值")
 
@@ -355,14 +347,14 @@ class KeyboardController:
         print("  x        退出AI模式")
 
         print("\n【步态切换】")
-        print("  F1       低速步态")
-        print("  F2       中速步态")
-        print("  F3       高速步态")
-        print("  F4       切换匍匐步态")
+        print("  u        低速步态")
+        print("  i        中速步态")
+        print("  o        高速步态")
+        print("  l        切换匍匐步态")
 
         print("\n【基本控制】")
         print("  空格键   起立/趴下切换")
-        print("  e        软急停")
+        print("  r        软急停")
         print("  z        回零")
         print("  Tab      显示当前状态")
         print("  ESC      退出程序")
@@ -383,7 +375,7 @@ class KeyboardController:
         if key is None:
             return True
 
-        # ---- 移动控制（WASD + QR） ----
+        # ---- 移动控制（WASD + QE） ----
         if key in self.MOVEMENT_KEYS:
             self._mark_key_pressed(key)
             return True
@@ -398,7 +390,7 @@ class KeyboardController:
             print("\n>>> 起立/趴下切换")
             self.client.stand_toggle()
 
-        elif key == 'e':
+        elif key == 'r':
             print("\n>>> 软急停")
             self.client.soft_estop()
 
@@ -443,19 +435,19 @@ class KeyboardController:
             self.client.exit_ai()
 
         # ---- 步态切换 ----
-        elif key == 'F1':
+        elif key == 'u':
             print("\n>>> 切换到低速步态")
             self.client.set_low_speed_gait()
 
-        elif key == 'F2':
+        elif key == 'i':
             print("\n>>> 切换到中速步态")
             self.client.set_medium_speed_gait()
 
-        elif key == 'F3':
+        elif key == 'o':
             print("\n>>> 切换到高速步态")
             self.client.set_high_speed_gait()
 
-        elif key == 'F4':
+        elif key == 'l':
             print("\n>>> 切换匍匐步态")
             self.client.toggle_crawl_gait()
 
