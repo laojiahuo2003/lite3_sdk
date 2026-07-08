@@ -1,7 +1,7 @@
 """Lite3机器人键盘控制示例（跨平台版本）
 
 改进版：虚拟摇杆模式
-- WASD + QR 控制移动（按住移动，松手自动停止，平滑加减速）
+- WASD + QE 控制移动（按住移动，松手自动停止，平滑加减速）
 - 箭头键控制原地模式姿态
 - Windows: 使用 GetAsyncKeyState 实时检测按键状态
 - Linux/Mac: 使用时间戳超时方案
@@ -61,22 +61,6 @@ else:
                 if ch2 == '[':
                     if ch3 in 'ABCD':
                         return f'ARROW_{ch3}'
-                    elif ch3 == '1':
-                        ch4 = sys.stdin.read(1)
-                        if ch4 == '~':
-                            return 'F1'
-                    elif ch3 == '2':
-                        ch4 = sys.stdin.read(1)
-                        if ch4 == '~':
-                            return 'F2'
-                    elif ch3 == '3':
-                        ch4 = sys.stdin.read(1)
-                        if ch4 == '~':
-                            return 'F3'
-                    elif ch3 == '4':
-                        ch4 = sys.stdin.read(1)
-                        if ch4 == '~':
-                            return 'F4'
             return ch
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
@@ -587,7 +571,8 @@ def main():
     print("- ✅ Windows 实时按键检测（零延迟）")
     print("\n")
 
-    controller = KeyboardController(host="192.168.2.1", port=43893)
+    # controller = KeyboardController(host="192.168.2.1", port=43893)
+    controller = KeyboardController(host="192.168.0.37", port=43893)
     controller.run()
 
 
