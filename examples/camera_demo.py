@@ -5,7 +5,7 @@ from lite3_sdk import CameraClient
 
 def main():
     """连接摄像头并实时显示画面，按 Q 或 ESC 退出"""
-    camera = CameraClient(host="192.168.2.1")
+    camera = CameraClient(host="192.168.0.37")
 
     print("正在连接摄像头...")
     if not camera.connect():

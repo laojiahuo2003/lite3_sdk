@@ -59,12 +59,15 @@ from .commands import (
 class Lite3Client:
     """Lite3机器人客户端"""
 
-    def __init__(self, host: str = "192.168.1.120", port: int = 43893, timeout: float = 1.0):
+    def __init__(self, host: str = "192.168.1.120", port: int = 43893, timeout: float = 1.0,
+                 packet_log_path: str = None, local_port: int = 0):
         self.host = host
         self.port = port
         self.timeout = timeout
         self._verify = True
-        self.udp_client = UDPClient(host, port, timeout)
+        self.udp_client = UDPClient(host, port, timeout,
+                                    packet_log_path=packet_log_path,
+                                    local_port=local_port)
 
         self._robot_state: Optional[RobotState] = None
         self._joint_angles: Optional[JointAngles] = None

@@ -6,6 +6,7 @@ from enum import IntEnum
 
 class RobotBasicState(IntEnum):
     """机器人基本运动状态"""
+    IDLE = 0  # 空闲/未初始化（固件版本差异）
     LIE_DOWN = 1  # 趴下状态
     PREPARE_STAND = 4  # 准备起立状态
     STANDING_UP = 5  # 正在起立状态
@@ -51,6 +52,7 @@ class RobotMotionState(IntEnum):
 @dataclass
 class RobotState:
     """机器人状态信息"""
+    version: int  # 固件版本/序列号
     robot_basic_state: int  # 机器人基本运动状态
     robot_gait_state: int  # 机器人当前步态
     robot_policy_state: int  # 机器人当前AI步态
@@ -132,7 +134,12 @@ class RobotState:
 
     @property
     def battery_percentage(self) -> float:
-        """电池电量百分比"""
+        """电池电量百分比
+
+        文档定义为 0~1 小数形式，但部分固件版本直接上报 0~100 的百分比值。
+        """
+        if self.battery_level > 1.0:
+            return self.battery_level  # 固件直接上报百分比
         return self.battery_level * 100.0
 
     def __str__(self) -> str:

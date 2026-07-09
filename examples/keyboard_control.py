@@ -98,8 +98,12 @@ class KeyboardController:
     # 原地模式步长
     POSTURE_STEP = 5000
 
-    def __init__(self, host: str = "192.168.2.1", port: int = 43893):
-        self.client = Lite3Client(host=host, port=port)
+    def __init__(self, host: str = "192.168.2.1", port: int = 43893,
+                 packet_log_path: str = None, local_port: int = 0):
+        self.client = Lite3Client(host=host, port=port,
+                                  packet_log_path=packet_log_path,
+                                  local_port=local_port)
+        self._packet_log_path = packet_log_path
         self.running = False
 
         # ---- 平滑移动控制（浮点内部值，发送时转 int） ----
@@ -123,6 +127,10 @@ class KeyboardController:
         # ---- 轴指令发送线程 ----
         self._axis_thread: threading.Thread | None = None
         self._axis_running = False
+
+        # ---- 状态数据接收追踪 ----
+        self._state_received_count = 0
+        self._last_state_time = 0.0
 
     # =========================================================================
     # 平台相关：按键状态检测
@@ -176,6 +184,13 @@ class KeyboardController:
         print("✅ 连接成功")
         self.client.start_heartbeat(rate=5.0)
         print("✅ 心跳已启动")
+
+        # 注册状态回调，追踪数据接收情况
+        def on_state(state):
+            self._state_received_count += 1
+            self._last_state_time = time.time()
+        self.client.set_robot_state_callback(on_state)
+
         time.sleep(1)
         return True
 
@@ -283,16 +298,56 @@ class KeyboardController:
     # =========================================================================
 
     def show_status(self):
-        """显示当前状态"""
+        """显示当前状态（完整字段）"""
         if self.client.robot_state:
-            state = self.client.robot_state
-            print(f"\n当前状态: {state.basic_state_name}")
-            print(f"步态: {state.gait_state_name}")
-            print(f"AI步态: {state.policy_state_name}")
-            print(f"电池: {state.battery_percentage:.1f}%")
-            print(f"姿态: roll={state.roll:.1f}° pitch={state.pitch:.1f}° yaw={state.yaw:.1f}°")
+            s = self.client.robot_state
+            print(f"\n{'='*55}")
+            print(f"  固件版本: {s.version}  |  收包: {self._state_received_count}")
+            print(f"{'='*55}")
+            print(f"  基本状态: {s.basic_state_name} (值={s.robot_basic_state})")
+            print(f"  步态:     {s.gait_state_name} (值={s.robot_gait_state})")
+            print(f"  AI步态:   {s.policy_state_name} (值={s.robot_policy_state})")
+            print(f"  动作状态: {s.motion_state_name} (值={s.robot_motion_state})")
+            print(f"  电池:     {s.battery_percentage:.1f}%  (原始值={s.battery_level:.2f})")
+            print()
+            print(f"  ── IMU 姿态角 (°) ──")
+            print(f"  roll={s.roll:8.3f}   pitch={s.pitch:8.3f}   yaw={s.yaw:8.3f}")
+            print()
+            print(f"  ── IMU 角速度 (rad/s) ──")
+            print(f"  roll_vel={s.roll_vel:8.4f}  pitch_vel={s.pitch_vel:8.4f}  yaw_vel={s.yaw_vel:8.4f}")
+            print()
+            print(f"  ── IMU 加速度 (m/s²) ──")
+            print(f"  x={s.x_acc:8.4f}  y={s.y_acc:8.4f}  z={s.z_acc:8.4f}")
+            print()
+            print(f"  ── 世界坐标系位姿 ──")
+            print(f"  x={s.pos_x:8.3f}m  y={s.pos_y:8.3f}m  yaw={s.pos_yaw:8.4f}rad")
+            print()
+            print(f"  ── 世界坐标系速度 ──")
+            print(f"  x_vel={s.vel_x_world:8.4f}  y_vel={s.vel_y_world:8.4f}  yaw_vel={s.vel_yaw_world:8.4f}")
+            print()
+            print(f"  ── 身体坐标系速度 ──")
+            print(f"  x_vel={s.vel_x_body:8.4f}  y_vel={s.vel_y_body:8.4f}  yaw_vel={s.vel_yaw_body:8.4f}")
+            print()
+            print(f"  ── 超声波 (m) ──")
+            print(f"  前方={s.ultrasound_forward:.3f}   后方={s.ultrasound_backward:.3f}")
+            print()
+            print(f"  ── 标志位 ──")
+            print(f"  平衡={s.is_robot_need_move}  回零={s.zero_position_flag}  "
+                  f"首次启动={s.is_after_first_start}  语音={s.is_voice_ctrl_enable}")
+            print(f"  充电={s.is_charging}  错误码={s.error_state}")
+            print(f"{'='*55}")
         else:
             print("\n⚠️  未接收到状态数据")
+            if self._state_received_count > 0:
+                elapsed = time.time() - self._last_state_time
+                print(f"   (之前收到过 {self._state_received_count} 条数据包，已中断 {elapsed:.0f}s)")
+            print("   可能原因：")
+            print("   1. 机器人未配置向本机推流状态数据")
+            print("   2. 需要SSH连接运动主机修改数据上报目标地址")
+            print("   3. 参考 运动主机通讯接口.md §1.3 进行配置")
+            if self._packet_log_path:
+                print(f"\n📋 所有收包已记录到: {self._packet_log_path}")
+                print("   (请提交此文件以便分析)")
 
     def _show_movement_state(self):
         """显示当前移动轴值（调试用）"""
@@ -572,7 +627,8 @@ def main():
     print("\n")
 
     # controller = KeyboardController(host="192.168.2.1", port=43893)
-    controller = KeyboardController(host="192.168.0.37", port=43893)
+    controller = KeyboardController(host="192.168.0.37", port=43893,
+                                    local_port=43897)
     controller.run()
 
 
