@@ -128,6 +128,10 @@ class KeyboardController:
         self._axis_thread: threading.Thread | None = None
         self._axis_running = False
 
+        # ---- 危险动作二次确认 ----
+        self._pending_dangerous: tuple | None = None  # (key, action_name, action_fn, timestamp)
+        self._pending_timeout = 3.0  # 确认超时（秒），超时自动取消
+
         # ---- 状态数据接收追踪 ----
         self._state_received_count = 0
         self._last_state_time = 0.0
@@ -399,10 +403,10 @@ class KeyboardController:
         print("  ESC      退出程序")
 
         print("\n【动作指令】")
-        print("  t        扭身体    f    翻身")
-        print("  p        太空步    b    后空翻")
-        print("  g        打招呼    j    向前跳")
-        print("  y        扭身跳    c    停止动作")
+        print("  t        扭身体    ⚠️ f  翻身 (需确认)")
+        print("  p        太空步    ⚠️ b  后空翻 (需确认)")
+        print("  g        打招呼    ⚠️ j  向前跳 (需确认)")
+        print("  ⚠️ y     扭身跳 (需确认)    c    停止动作")
         print("=" * 60)
 
     # =========================================================================
@@ -412,6 +416,23 @@ class KeyboardController:
     def handle_key(self, key):
         """处理按键输入"""
         if key is None:
+            return True
+
+        # ---- 危险动作二次确认 ----
+        if self._pending_dangerous is not None:
+            # 超时自动取消
+            if time.time() - self._pending_dangerous[3] > self._pending_timeout:
+                print(f"\n⏰ 确认超时，已自动取消: {self._pending_dangerous[1]}")
+                self._pending_dangerous = None
+                return True
+
+            if key == 'y':
+                _, name, action_fn, _ = self._pending_dangerous
+                print(f"\n⚠️  确认执行: {name} !!!")
+                action_fn(self)
+            else:
+                print(f"\n❌ 已取消: {self._pending_dangerous[1]}")
+            self._pending_dangerous = None
             return True
 
         # ---- 移动控制（WASD + QE） ----
@@ -496,24 +517,28 @@ class KeyboardController:
             self.client.twist_body()
 
         elif key == 'f':
-            print("\n>>> 翻身")
-            self.client.roll_over()
+            print("\n⚠️  危险动作: 翻身 (3秒内按 y 确认，否则自动取消)")
+            print("   按 y 确认执行，按其他任意键取消...")
+            self._pending_dangerous = ('f', '翻身', lambda self: self.client.roll_over(), time.time())
 
         elif key == 'b':
-            print("\n>>> 后空翻")
-            self.client.backflip()
+            print("\n⚠️  危险动作: 后空翻 (3秒内按 y 确认，否则自动取消)")
+            print("   按 y 确认执行，按其他任意键取消...")
+            self._pending_dangerous = ('b', '后空翻', lambda self: self.client.backflip(), time.time())
 
         elif key == 'g':
             print("\n>>> 打招呼")
             self.client.greeting()
 
         elif key == 'j':
-            print("\n>>> 向前跳")
-            self.client.jump_forward()
+            print("\n⚠️  危险动作: 向前跳 (3秒内按 y 确认，否则自动取消)")
+            print("   按 y 确认执行，按其他任意键取消...")
+            self._pending_dangerous = ('j', '向前跳', lambda self: self.client.jump_forward(), time.time())
 
         elif key == 'y':
-            print("\n>>> 扭身跳")
-            self.client.twist_jump()
+            print("\n⚠️  危险动作: 扭身跳 (3秒内按 y 确认，否则自动取消)")
+            print("   按 y 确认执行，按其他任意键取消...")
+            self._pending_dangerous = ('y', '扭身跳', lambda self: self.client.twist_jump(), time.time())
 
         elif key == 'c':
             print("\n>>> 停止动作")
