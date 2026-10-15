@@ -12,8 +12,9 @@ class CommandCode(IntEnum):
     STAND_TOGGLE = 0x21010202  # 起立/趴下
     SOFT_ESTOP = 0x21020C0E  # 软急停
     ZEROING = 0x21010C05  # 回零
-    ENTER_AI = 0x21010528  # 进入AI
-    EXIT_AI = 0x2101052B  # 退出AI
+    # AI模式指令（已禁用：2026-10-12 注释禁用）
+    # ENTER_AI = 0x21010528  # 进入AI
+    # EXIT_AI = 0x2101052B  # 退出AI
 
     # 轴指令
     AXIS_ROLL = 0x21010131  # 调整横滚角/左右平移
@@ -34,15 +35,15 @@ class CommandCode(IntEnum):
     GAIT_GENERAL_OBSTACLE = 0x21010401  # 通用越障步态
     GAIT_HIGH_STEP_OBSTACLE = 0x21010407  # 高踏步越障步态
 
-    # 动作指令
-    ACTION_TWIST_BODY = 0x21010204  # 扭身体
-    ACTION_ROLL_OVER = 0x21010205  # 翻身
-    ACTION_SPACE_WALK = 0x2101030C  # 太空步
-    ACTION_BACKFLIP = 0x21010502  # 后空翻
-    ACTION_GREETING = 0x21010507  # 打招呼
-    ACTION_JUMP_FORWARD = 0x2101050B  # 向前跳
-    ACTION_TWIST_JUMP = 0x2101020D  # 扭身跳
-    ACTION_STOP = 0x21010C0B  # 停止动作
+    # 动作指令（已禁用：危险动作，2026-10-12 注释禁用）
+    # ACTION_TWIST_BODY = 0x21010204  # 扭身体
+    # ACTION_ROLL_OVER = 0x21010205  # 翻身
+    # ACTION_SPACE_WALK = 0x2101030C  # 太空步
+    # ACTION_BACKFLIP = 0x21010502  # 后空翻
+    # ACTION_GREETING = 0x21010507  # 打招呼
+    # ACTION_JUMP_FORWARD = 0x2101050B  # 向前跳
+    # ACTION_TWIST_JUMP = 0x2101020D  # 扭身跳
+    # ACTION_STOP = 0x21010C0B  # 停止动作
 
     # 控制模式切换指令
     CONTROL_AUTONOMOUS = 0x21010C03  # 自主模式
@@ -68,14 +69,14 @@ class CommandCode(IntEnum):
     VELOCITY_X = 0x0140  # 指定前后平移的速度
     VELOCITY_Y = 0x0145  # 指定左右平移的速度
 
-    # AI步态切换指令
-    AI_GAIT_BASIC = 0x2101052A  # AI基础步态
-    AI_GAIT_JUMP = 0x21010529  # AI跳跃步态
-    AI_GAIT_STAND = 0x2101052C  # AI站立步态
-    AI_GAIT_HIGH_SPEED = 0x2101052E  # AI极速步态
+    # AI步态切换指令（已禁用：2026-10-12 注释禁用）
+    # AI_GAIT_BASIC = 0x2101052A  # AI基础步态
+    # AI_GAIT_JUMP = 0x21010529  # AI跳跃步态
+    # AI_GAIT_STAND = 0x2101052C  # AI站立步态
+    # AI_GAIT_HIGH_SPEED = 0x2101052E  # AI极速步态
 
-    # AI动作指令
-    AI_ACTION = 0x2101030E
+    # AI动作指令（已禁用：2026-10-12 注释禁用）
+    # AI_ACTION = 0x2101030E
 
     # 接收信息指令码
     RECV_ROBOT_STATE = 0x0901  # 机器人状态信息
@@ -112,12 +113,12 @@ class AISettingsValue(IntEnum):
     ENABLE_NAVIGATION = 0x40  # 开启导航避障
 
 
-class AIActionValue(IntEnum):
-    """AI动作值"""
-    HANDSTAND = 4  # 倒立
-    BACKFLIP = 64  # 原地空翻
-    JUMP = 128  # 原地跳跃
-    STOP = 0  # 停止表演AI动作
+# class AIActionValue(IntEnum):
+#     """AI动作值"""
+#     HANDSTAND = 4  # 倒立
+#     BACKFLIP = 64  # 原地空翻
+#     JUMP = 128  # 原地跳跃
+#     STOP = 0  # 停止表演AI动作
 
 
 class ContinuousMotionValue(IntEnum):

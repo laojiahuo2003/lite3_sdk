@@ -76,10 +76,10 @@ class KeyboardController:
     # ---- 移动控制键位（WASD + QE，FPS 游戏标准布局） ----
     KEY_FORWARD = 'w'       # W — 前进
     KEY_BACKWARD = 's'      # S — 后退
-    KEY_TURN_LEFT = 'a'     # A — 左转
-    KEY_TURN_RIGHT = 'd'    # D — 右转
-    KEY_STRAFE_LEFT = 'q'   # Q — 左平移
-    KEY_STRAFE_RIGHT = 'e'  # E — 右平移
+    KEY_TURN_LEFT = 'q'     # Q — 左转
+    KEY_TURN_RIGHT = 'e'    # E — 右转
+    KEY_STRAFE_LEFT = 'a'   # A — 左平移
+    KEY_STRAFE_RIGHT = 'd'  # D — 右平移
 
     MOVEMENT_KEYS = ['w', 's', 'a', 'd', 'q', 'e']
 
@@ -240,16 +240,16 @@ class KeyboardController:
         if self._is_key_held('s'):
             tp -= self.MAX_SPEED
 
-        # A/D — 左转/右转
-        if self._is_key_held('a'):
+        # Q/E — 左转/右转
+        if self._is_key_held('q'):
             ty -= self.MAX_SPEED
-        if self._is_key_held('d'):
+        if self._is_key_held('e'):
             ty += self.MAX_SPEED
 
-        # Q/E — 左平移/右平移
-        if self._is_key_held('q'):
+        # A/D — 左平移/右平移
+        if self._is_key_held('a'):
             tr -= self.MAX_SPEED
-        if self._is_key_held('e'):
+        if self._is_key_held('d'):
             tr += self.MAX_SPEED
 
         return tp, tr, ty
@@ -369,9 +369,9 @@ class KeyboardController:
 
         print("\n【移动控制 — 按住移动，松手自动停止】")
         print("  W / S    前进 / 后退")
-        print("  A / D    左转 / 右转")
-        print("  Q / E    左平移 / 右平移")
-        print("  支持组合键（如 W+D = 前进+右转）")
+        print("  Q / E    左转 / 右转")
+        print("  A / D    左平移 / 右平移")
+        print("  支持组合键（如 W+E = 前进+右转）")
         print("  v        显示当前轴值")
 
         print("\n【原地模式 — 姿态调整（箭头键，步进式）】")
@@ -385,9 +385,9 @@ class KeyboardController:
         print("  3        手动模式")
         print("  4        自主模式")
 
-        print("\n【AI模式】")
-        print("  a        进入AI模式")
-        print("  x        退出AI模式")
+        # print("\n【AI模式】")   # 已禁用：AI模式已从 SDK 移除
+        # print("  a        进入AI模式")
+        # print("  x        退出AI模式")
 
         print("\n【步态切换】")
         print("  u        低速步态")
@@ -402,11 +402,11 @@ class KeyboardController:
         print("  Tab      显示当前状态")
         print("  ESC      退出程序")
 
-        print("\n【动作指令】")
-        print("  t        扭身体    ⚠️ f  翻身 (需确认)")
-        print("  p        太空步    ⚠️ b  后空翻 (需确认)")
-        print("  g        打招呼    ⚠️ j  向前跳 (需确认)")
-        print("  ⚠️ y     扭身跳 (需确认)    c    停止动作")
+        # print("\n【动作指令】")   # 已禁用：动作指令已从 SDK 移除
+        # print("  t        扭身体    ⚠️ f  翻身 (需确认)")
+        # print("  p        太空步    ⚠️ b  后空翻 (需确认)")
+        # print("  g        打招呼    ⚠️ j  向前跳 (需确认)")
+        # print("  ⚠️ y     扭身跳 (需确认)    c    停止动作")
         print("=" * 60)
 
     # =========================================================================
@@ -418,22 +418,22 @@ class KeyboardController:
         if key is None:
             return True
 
-        # ---- 危险动作二次确认 ----
-        if self._pending_dangerous is not None:
-            # 超时自动取消
-            if time.time() - self._pending_dangerous[3] > self._pending_timeout:
-                print(f"\n⏰ 确认超时，已自动取消: {self._pending_dangerous[1]}")
-                self._pending_dangerous = None
-                return True
-
-            if key == 'y':
-                _, name, action_fn, _ = self._pending_dangerous
-                print(f"\n⚠️  确认执行: {name} !!!")
-                action_fn(self)
-            else:
-                print(f"\n❌ 已取消: {self._pending_dangerous[1]}")
-            self._pending_dangerous = None
-            return True
+        # ---- 危险动作二次确认（已禁用：动作指令已从 SDK 移除） ----
+        # if self._pending_dangerous is not None:
+        #     # 超时自动取消
+        #     if time.time() - self._pending_dangerous[3] > self._pending_timeout:
+        #         print(f"\n⏰ 确认超时，已自动取消: {self._pending_dangerous[1]}")
+        #         self._pending_dangerous = None
+        #         return True
+        #
+        #     if key == 'y':
+        #         _, name, action_fn, _ = self._pending_dangerous
+        #         print(f"\n⚠️  确认执行: {name} !!!")
+        #         action_fn(self)
+        #     else:
+        #         print(f"\n❌ 已取消: {self._pending_dangerous[1]}")
+        #     self._pending_dangerous = None
+        #     return True
 
         # ---- 移动控制（WASD + QE） ----
         if key in self.MOVEMENT_KEYS:
@@ -485,14 +485,14 @@ class KeyboardController:
             print("\n>>> 切换到自主模式")
             self.client.set_autonomous_mode()
 
-        # ---- AI模式 ----
-        elif key == 'a':
-            print("\n>>> 进入AI模式")
-            self.client.enter_ai()
-
-        elif key == 'x':
-            print("\n>>> 退出AI模式")
-            self.client.exit_ai()
+        # ---- AI模式（已禁用：AI模式已从 SDK 移除）----
+        # elif key == 'a':
+        #     print("\n>>> 进入AI模式")
+        #     self.client.enter_ai()
+        #
+        # elif key == 'x':
+        #     print("\n>>> 退出AI模式")
+        #     self.client.exit_ai()
 
         # ---- 步态切换 ----
         elif key == 'u':
@@ -511,42 +511,42 @@ class KeyboardController:
             print("\n>>> 切换匍匐步态")
             self.client.toggle_crawl_gait()
 
-        # ---- 动作指令 ----
-        elif key == 't':
-            print("\n>>> 扭身体")
-            self.client.twist_body()
-
-        elif key == 'f':
-            print("\n⚠️  危险动作: 翻身 (3秒内按 y 确认，否则自动取消)")
-            print("   按 y 确认执行，按其他任意键取消...")
-            self._pending_dangerous = ('f', '翻身', lambda self: self.client.roll_over(), time.time())
-
-        elif key == 'b':
-            print("\n⚠️  危险动作: 后空翻 (3秒内按 y 确认，否则自动取消)")
-            print("   按 y 确认执行，按其他任意键取消...")
-            self._pending_dangerous = ('b', '后空翻', lambda self: self.client.backflip(), time.time())
-
-        elif key == 'g':
-            print("\n>>> 打招呼")
-            self.client.greeting()
-
-        elif key == 'j':
-            print("\n⚠️  危险动作: 向前跳 (3秒内按 y 确认，否则自动取消)")
-            print("   按 y 确认执行，按其他任意键取消...")
-            self._pending_dangerous = ('j', '向前跳', lambda self: self.client.jump_forward(), time.time())
-
-        elif key == 'y':
-            print("\n⚠️  危险动作: 扭身跳 (3秒内按 y 确认，否则自动取消)")
-            print("   按 y 确认执行，按其他任意键取消...")
-            self._pending_dangerous = ('y', '扭身跳', lambda self: self.client.twist_jump(), time.time())
-
-        elif key == 'c':
-            print("\n>>> 停止动作")
-            self.client.stop_action()
-
-        elif key == 'p':
-            print("\n>>> 太空步")
-            self.client.space_walk()
+        # ---- 动作指令（已禁用：动作指令已从 SDK 移除） ----
+        # elif key == 't':
+        #     print("\n>>> 扭身体")
+        #     self.client.twist_body()
+        #
+        # elif key == 'f':
+        #     print("\n⚠️  危险动作: 翻身 (3秒内按 y 确认，否则自动取消)")
+        #     print("   按 y 确认执行，按其他任意键取消...")
+        #     self._pending_dangerous = ('f', '翻身', lambda self: self.client.roll_over(), time.time())
+        #
+        # elif key == 'b':
+        #     print("\n⚠️  危险动作: 后空翻 (3秒内按 y 确认，否则自动取消)")
+        #     print("   按 y 确认执行，按其他任意键取消...")
+        #     self._pending_dangerous = ('b', '后空翻', lambda self: self.client.backflip(), time.time())
+        #
+        # elif key == 'g':
+        #     print("\n>>> 打招呼")
+        #     self.client.greeting()
+        #
+        # elif key == 'j':
+        #     print("\n⚠️  危险动作: 向前跳 (3秒内按 y 确认，否则自动取消)")
+        #     print("   按 y 确认执行，按其他任意键取消...")
+        #     self._pending_dangerous = ('j', '向前跳', lambda self: self.client.jump_forward(), time.time())
+        #
+        # elif key == 'y':
+        #     print("\n⚠️  危险动作: 扭身跳 (3秒内按 y 确认，否则自动取消)")
+        #     print("   按 y 确认执行，按其他任意键取消...")
+        #     self._pending_dangerous = ('y', '扭身跳', lambda self: self.client.twist_jump(), time.time())
+        #
+        # elif key == 'c':
+        #     print("\n>>> 停止动作")
+        #     self.client.stop_action()
+        #
+        # elif key == 'p':
+        #     print("\n>>> 太空步")
+        #     self.client.space_walk()
 
         # ---- 原地模式姿态调整（箭头键，步进式） ----
         elif key == 'ARROW_A':  # 上箭头
@@ -596,7 +596,7 @@ class KeyboardController:
         print("\n💡 提示:")
         print("   - 切换到移动模式（按2），然后用 WASD 控制移动")
         print("   - 按住移动，松手自动停止（虚拟摇杆）")
-        print("   - 支持同时按住多个键（如 W+D 前进+右转）")
+        print("   - 支持同时按住多个键（如 W+E 前进+右转）")
         print("   - 按 v 查看当前轴值")
 
         if platform.system() == 'Windows':
@@ -638,21 +638,26 @@ def main():
     print("1. 确保机器人已开机并连接到网络")
     print("2. 修改 host 参数为你的机器人IP地址")
     print("3. 运行此脚本: python keyboard_control.py")
-    print("4. 切换到移动模式（按2），然后用 WASD 控制移动")
+    print("4. 按 2 切换到移动模式，再用 WASD 控制移动")
+    print("\n键位总览:")
+    print("  移动:     W/S 前进/后退   Q/E 左转/右转   A/D 左/右平移")
+    print("  原地姿态: ↑/↓ 俯仰角      ←/→ 横滚角      h 重置轴指令")
+    print("  模式:     1 原地   2 移动   3 手动   4 自主")
+    print("  步态:     u 低速   i 中速   o 高速   l 匍匐")
+    print("  基本:     空格 起立/趴下   r 软急停   z 回零   Tab 状态   ESC 退出")
+    print("  v        显示当前轴值")
     print("\n平台支持:")
     print(f"- 当前平台: {platform.system()}")
     print("- Windows: 使用 msvcrt + GetAsyncKeyState（无需额外依赖）")
     print("- Linux/Mac: 使用 tty/termios（无需额外依赖）")
-    print("\n改进要点:")
+    print("\n要点:")
     print("- ✅ 虚拟摇杆模式：按住移动，松手自动停止")
     print("- ✅ 平滑加减速（模拟摇杆物理行程）")
-    print("- ✅ 支持组合键（W+D 前进+右转）")
-    print("- ✅ WASD + QR 布局（FPS 游戏标准，直觉化）")
-    print("- ✅ Windows 实时按键检测（零延迟）")
+    print("- ✅ 支持组合键（W+E 前进+右转）")
     print("\n")
 
     # controller = KeyboardController(host="192.168.2.1", port=43893)
-    controller = KeyboardController(host="192.168.0.37", port=43893,
+    controller = KeyboardController(host="192.168.1.120", port=43893,
                                     local_port=43897)
     controller.run()
 

@@ -244,17 +244,17 @@ class TuiController:
         'i':  ('medium_speed_gait','中速步态'),
         'o':  ('high_speed_gait', '高速步态'),
         'l':  ('toggle_crawl',    '切换匍匐'),
-        't':  ('twist_body',      '扭身体'),
-        'f':  ('roll_over',       '翻身'),
-        'b':  ('backflip',        '后空翻'),
-        'g':  ('greeting',        '打招呼'),
-        'j':  ('jump_forward',    '向前跳'),
-        'y':  ('twist_jump',      '扭身跳'),
-        'c':  ('stop_action',     '停止动作'),
-        'p':  ('space_walk',      '太空步'),
+        # 't':  ('twist_body',      '扭身体'),
+        # 'f':  ('roll_over',       '翻身'),
+        # 'b':  ('backflip',        '后空翻'),
+        # 'g':  ('greeting',        '打招呼'),
+        # 'j':  ('jump_forward',    '向前跳'),
+        # 'y':  ('twist_jump',      '扭身跳'),
+        # 'c':  ('stop_action',     '停止动作'),
+        # 'p':  ('space_walk',      '太空步'),
         'h':  ('reset_axis',      '重置轴指令'),
-        'a':  ('enter_ai',        '进入AI'),
-        'x':  ('exit_ai',         '退出AI'),
+        # 'a':  ('enter_ai',        '进入AI'),   # 已禁用：AI模式已从 SDK 移除
+        # 'x':  ('exit_ai',         '退出AI'),
     }
 
     def __init__(self, host, port, local_port):
@@ -419,17 +419,17 @@ class TuiController:
             'medium_speed_gait': self.client.set_medium_speed_gait,
             'high_speed_gait': self.client.set_high_speed_gait,
             'toggle_crawl':    self.client.toggle_crawl_gait,
-            'twist_body':      self.client.twist_body,
-            'roll_over':       self.client.roll_over,
-            'backflip':        self.client.backflip,
-            'greeting':        self.client.greeting,
-            'jump_forward':    self.client.jump_forward,
-            'twist_jump':      self.client.twist_jump,
-            'stop_action':     self.client.stop_action,
-            'space_walk':      self.client.space_walk,
+            # 'twist_body':      self.client.twist_body,
+            # 'roll_over':       self.client.roll_over,
+            # 'backflip':        self.client.backflip,
+            # 'greeting':        self.client.greeting,
+            # 'jump_forward':    self.client.jump_forward,
+            # 'twist_jump':      self.client.twist_jump,
+            # 'stop_action':     self.client.stop_action,
+            # 'space_walk':      self.client.space_walk,
             'reset_axis':      self._reset_axis_inner,
-            'enter_ai':        self.client.enter_ai,
-            'exit_ai':         self.client.exit_ai,
+            # 'enter_ai':        self.client.enter_ai,   # 已禁用：AI模式已从 SDK 移除
+            # 'exit_ai':         self.client.exit_ai,
         }
         fn = actions_map[action]
         fn()
@@ -645,14 +645,10 @@ class TuiController:
 
         lines.append(box_line(w,
             f'模式: {c("1",CYAN)}原地 {c("2",CYAN)}移动 {c("3",CYAN)}手动 {c("4",CYAN)}自主 │ '
-            f'基本: {c("空格",YELLOW)}起立 {c("r",YELLOW)}急停 {c("z",YELLOW)}回零 │ '
-            f'{c("a",MAGENTA)}AI {c("x",MAGENTA)}退AI'))
+            f'基本: {c("空格",YELLOW)}起立 {c("r",YELLOW)}急停 {c("z",YELLOW)}回零'))
 
         lines.append(box_line(w,
-            f'步态: {c("u",CYAN)}低速 {c("i",CYAN)}中速 {c("o",CYAN)}高速 {c("l",CYAN)}匍匐 │ '
-            f'动作: {c("t",YELLOW)}扭 {c("f",YELLOW)}翻 {c("p",YELLOW)}太空 '
-            f'{c("b",YELLOW)}后翻 {c("g",YELLOW)}招呼 {c("j",YELLOW)}跳 {c("y",YELLOW)}扭跳 '
-            f'{c("c",YELLOW)}停'))
+            f'步态: {c("u",CYAN)}低速 {c("i",CYAN)}中速 {c("o",CYAN)}高速 {c("l",CYAN)}匍匐'))
 
         lines.append(box_line(w, f'{c("ESC",RED)} 退出'))
         lines.append(box_bottom(w))

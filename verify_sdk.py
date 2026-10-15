@@ -15,8 +15,7 @@ try:
         HeartbeatCommand,
         RollCommand,
         PitchCommand,
-        StandToggleCommand,
-        EnterAICommand
+        StandToggleCommand
     )
     print("✓ 所有主要类导入成功")
 except ImportError as e:

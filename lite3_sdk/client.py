@@ -17,8 +17,8 @@ from .commands import (
     StandToggleCommand,
     SoftEstopCommand,
     ZeroingCommand,
-    EnterAICommand,
-    ExitAICommand,
+    # EnterAICommand,
+    # ExitAICommand,
     InPlaceModeCommand,
     MovingModeCommand,
     AutonomousModeCommand,
@@ -30,28 +30,28 @@ from .commands import (
     GripObstacleGaitCommand,
     GeneralObstacleGaitCommand,
     HighStepObstacleGaitCommand,
-    TwistBodyCommand,
-    RollOverCommand,
-    SpaceWalkCommand,
-    BackflipCommand,
-    GreetingCommand,
-    JumpForwardCommand,
-    TwistJumpCommand,
-    StopActionCommand,
+    # TwistBodyCommand,
+    # RollOverCommand,
+    # SpaceWalkCommand,
+    # BackflipCommand,
+    # GreetingCommand,
+    # JumpForwardCommand,
+    # TwistJumpCommand,
+    # StopActionCommand,
     VoiceCommand,
     SpeakerCommand,
     AISettingsCommand,
     ContinuousMotionCommand,
-    AIBasicGaitCommand,
-    AIJumpGaitCommand,
-    AIStandGaitCommand,
-    AIHighSpeedGaitCommand,
-    AIActionCommand,
+    # AIBasicGaitCommand,
+    # AIJumpGaitCommand,
+    # AIStandGaitCommand,
+    # AIHighSpeedGaitCommand,
+    # AIActionCommand,
     SaveDataCommand,
     CommandCode,
     VoiceCommandValue,
     AISettingsValue,
-    AIActionValue,
+    # AIActionValue,
     SpeakerValue
 )
 
@@ -223,13 +223,14 @@ class Lite3Client:
         """回零"""
         return self.send_command(ZeroingCommand())
 
-    def enter_ai(self) -> bool:
-        """进入AI模式"""
-        return self.send_command(EnterAICommand())
-
-    def exit_ai(self) -> bool:
-        """退出AI模式"""
-        return self.send_command(ExitAICommand())
+    # ========== AI模式（已禁用：2026-10-12 注释禁用） ==========
+    # def enter_ai(self) -> bool:
+    #     """进入AI模式"""
+    #     return self.send_command(EnterAICommand())
+    #
+    # def exit_ai(self) -> bool:
+    #     """退出AI模式"""
+    #     return self.send_command(ExitAICommand())
 
     # ========== 运动模式 ==========
 
@@ -348,41 +349,41 @@ class Lite3Client:
         """设置高踏步越障步态"""
         return self.send_command(HighStepObstacleGaitCommand())
 
-    # ========== 动作指令 ==========
+    # ========== 动作指令（已禁用） ==========
 
-    def twist_body(self) -> bool:
-        """扭身体"""
-        return self.send_command(TwistBodyCommand())
-
-    def roll_over(self) -> bool:
-        """翻身"""
-        return self.send_command(RollOverCommand())
-
-    def space_walk(self) -> bool:
-        """太空步"""
-        return self.send_command(SpaceWalkCommand())
-
-    def backflip(self) -> bool:
-        """后空翻"""
-        return self.send_command(BackflipCommand())
-
-    def greeting(self) -> bool:
-        """打招呼"""
-        return self.send_command(GreetingCommand())
-
-    def jump_forward(self) -> bool:
-        """向前跳"""
-        return self.send_command(JumpForwardCommand())
-
-    def twist_jump(self) -> bool:
-        """扭身跳"""
-        return self.send_command(TwistJumpCommand())
-
-    def stop_action(self) -> bool:
-        """停止动作（文档要求同时发送指令值 0 和 1）"""
-        cmd0 = StopActionCommand()  # 指令值 0
-        cmd1 = StopActionCommand(value=1)  # 指令值 1
-        return self.send_command(cmd0) and self.send_command(cmd1)
+    # def twist_body(self) -> bool:
+    #     """扭身体"""
+    #     return self.send_command(TwistBodyCommand())
+    #
+    # def roll_over(self) -> bool:
+    #     """翻身"""
+    #     return self.send_command(RollOverCommand())
+    #
+    # def space_walk(self) -> bool:
+    #     """太空步"""
+    #     return self.send_command(SpaceWalkCommand())
+    #
+    # def backflip(self) -> bool:
+    #     """后空翻"""
+    #     return self.send_command(BackflipCommand())
+    #
+    # def greeting(self) -> bool:
+    #     """打招呼"""
+    #     return self.send_command(GreetingCommand())
+    #
+    # def jump_forward(self) -> bool:
+    #     """向前跳"""
+    #     return self.send_command(JumpForwardCommand())
+    #
+    # def twist_jump(self) -> bool:
+    #     """扭身跳"""
+    #     return self.send_command(TwistJumpCommand())
+    #
+    # def stop_action(self) -> bool:
+    #     """停止动作（文档要求同时发送指令值 0 和 1）"""
+    #     cmd0 = StopActionCommand()  # 指令值 0
+    #     cmd1 = StopActionCommand(value=1)  # 指令值 1
+    #     return self.send_command(cmd0) and self.send_command(cmd1)
 
     # ========== 语音和扬声器 ==========
 
@@ -424,30 +425,31 @@ class Lite3Client:
         """
         return self.send_command(ContinuousMotionCommand(enable))
 
-    def set_ai_basic_gait(self) -> bool:
-        """设置AI基础步态"""
-        return self.send_command(AIBasicGaitCommand())
-
-    def set_ai_jump_gait(self) -> bool:
-        """设置AI跳跃步态"""
-        return self.send_command(AIJumpGaitCommand())
-
-    def set_ai_stand_gait(self) -> bool:
-        """设置AI站立步态"""
-        return self.send_command(AIStandGaitCommand())
-
-    def set_ai_high_speed_gait(self) -> bool:
-        """设置AI极速步态"""
-        return self.send_command(AIHighSpeedGaitCommand())
-
-    def perform_ai_action(self, value: AIActionValue) -> bool:
-        """
-        执行AI动作
-
-        Args:
-            value: AI动作值
-        """
-        return self.send_command(AIActionCommand(value))
+    # ========== AI步态/AI动作（已禁用：2026-10-12 注释禁用） ==========
+    # def set_ai_basic_gait(self) -> bool:
+    #     """设置AI基础步态"""
+    #     return self.send_command(AIBasicGaitCommand())
+    #
+    # def set_ai_jump_gait(self) -> bool:
+    #     """设置AI跳跃步态"""
+    #     return self.send_command(AIJumpGaitCommand())
+    #
+    # def set_ai_stand_gait(self) -> bool:
+    #     """设置AI站立步态"""
+    #     return self.send_command(AIStandGaitCommand())
+    #
+    # def set_ai_high_speed_gait(self) -> bool:
+    #     """设置AI极速步态"""
+    #     return self.send_command(AIHighSpeedGaitCommand())
+    #
+    # def perform_ai_action(self, value: AIActionValue) -> bool:
+    #     """
+    #     执行AI动作
+    #
+    #     Args:
+    #         value: AI动作值
+    #     """
+    #     return self.send_command(AIActionCommand(value))
 
     # ========== 停止运动 ==========
 

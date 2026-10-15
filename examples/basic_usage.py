@@ -94,46 +94,46 @@ def example_basic_control():
         print("示例完成")
 
 
-def example_ai_mode():
-    """AI模式示例"""
-    print("\n=== AI模式示例 ===")
-
-    with Lite3Client(host="192.168.1.120", port=43893) as client:
-        # 启动心跳
-        client.start_heartbeat()
-
-        print("等待机器人准备...")
-        time.sleep(2)
-
-        # 进入AI模式
-        print("\n进入AI模式...")
-        client.enter_ai()
-        time.sleep(2)
-
-        # 设置AI基础步态
-        print("\n设置AI基础步态...")
-        client.set_ai_basic_gait()
-        time.sleep(1)
-
-        # 在AI模式下控制机器人运动
-        print("\n在AI模式下控制机器人...")
-        for i in range(20):
-            client.set_pitch(8000)  # 向前
-            client.set_roll(0)
-            client.set_yaw(0)
-            time.sleep(0.05)
-
-        # 停止运动
-        print("\n停止运动...")
-        client.set_pitch(0)
-        client.set_roll(0)
-        client.set_yaw(0)
-        time.sleep(1)
-
-        # 退出AI模式
-        print("\n退出AI模式...")
-        client.exit_ai()
-        time.sleep(2)
+# def example_ai_mode():
+#     """AI模式示例（已禁用：AI模式已从 SDK 移除）"""
+#     print("\n=== AI模式示例 ===")
+#
+#     with Lite3Client(host="192.168.1.120", port=43893) as client:
+#         # 启动心跳
+#         client.start_heartbeat()
+#
+#         print("等待机器人准备...")
+#         time.sleep(2)
+#
+#         # 进入AI模式
+#         print("\n进入AI模式...")
+#         client.enter_ai()
+#         time.sleep(2)
+#
+#         # 设置AI基础步态
+#         print("\n设置AI基础步态...")
+#         client.set_ai_basic_gait()
+#         time.sleep(1)
+#
+#         # 在AI模式下控制机器人运动
+#         print("\n在AI模式下控制机器人...")
+#         for i in range(20):
+#             client.set_pitch(8000)  # 向前
+#             client.set_roll(0)
+#             client.set_yaw(0)
+#             time.sleep(0.05)
+#
+#         # 停止运动
+#         print("\n停止运动...")
+#         client.set_pitch(0)
+#         client.set_roll(0)
+#         client.set_yaw(0)
+#         time.sleep(1)
+#
+#         # 退出AI模式
+#         print("\n退出AI模式...")
+#         client.exit_ai()
+#         time.sleep(2)
 
 
 def example_autonomous_mode():

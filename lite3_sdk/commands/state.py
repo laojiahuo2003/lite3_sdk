@@ -24,18 +24,18 @@ class ZeroingCommand(SimpleCommand):
         super().__init__(CommandCode.ZEROING)
 
 
-class EnterAICommand(SimpleCommand):
-    """进入AI指令"""
-
-    def __init__(self):
-        super().__init__(CommandCode.ENTER_AI)
-
-
-class ExitAICommand(SimpleCommand):
-    """退出AI指令"""
-
-    def __init__(self):
-        super().__init__(CommandCode.EXIT_AI)
+# class EnterAICommand(SimpleCommand):
+#     """进入AI指令"""
+#
+#     def __init__(self):
+#         super().__init__(CommandCode.ENTER_AI)
+#
+#
+# class ExitAICommand(SimpleCommand):
+#     """退出AI指令"""
+#
+#     def __init__(self):
+#         super().__init__(CommandCode.EXIT_AI)
 
 
 class InPlaceModeCommand(SimpleCommand):
